@@ -1,0 +1,46 @@
+manifestVersion: 1
+name: slack
+description: Slack messaging, search, and analytics tools
+
+tools:
+  entry: tools.ts
+  env:
+    - SLACK_BOT_TOKEN
+    - SLACK_USER_TOKEN
+    - ANTHROPIC_API_KEY
+
+verbs:
+  notify:
+    synonyms: [alert, ping, inform, message]
+    instruction: >-
+      Post a brief update to the right channel with send_slack_message.
+      Keep it to 1-2 sentences; use thread replies for follow-ups to avoid
+      channel noise.
+  find:
+    synonyms: [search, look-up, research]
+    instruction: >-
+      Use get_relevant_messages to surface discussions, decisions, and
+      context across channels. Include thread context when a conversation
+      spans multiple replies.
+
+nouns:
+  messages:
+    synonyms: [message, chat, conversation, thread]
+    description: >-
+      Slack messages in channels, threads, and DMs. Searchable by content,
+      channel, author, and timeframe with semantic relevance ranking.
+    getters: [get_relevant_messages, get_channel_history, get_my_messages, get_barry_mentions]
+    setters: [send_slack_message, send_message_as_user]
+    skills: [pretty-slack, slack-myself, slack-unread]
+  channels:
+    synonyms: [channel, room, workspace]
+    description: Slack channels the bot can access — public, private, or DM.
+    getters: [list_slack_channels]
+    skills: [find-slack-channel-id, check-slack]
+  activity:
+    synonyms: [activity, report, summary, standup, recap]
+    description: >-
+      Per-person Slack activity summaries over a timeframe. Scoped to a
+      team/usergroup or all workspace users. Outputs markdown.
+    getters: [get_my_messages, get_relevant_messages]
+    skills: [team-activity]

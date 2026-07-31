@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@barry/md-to-slack-blocks": "file:../../../src/md-to-slack-blocks"
+  }
+}

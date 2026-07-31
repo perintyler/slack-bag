@@ -1,0 +1,22 @@
+{
+  "name": "@barry-packs/slack",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@barry/env": "link:../../barry/packages/env",
+    "@barry/slack": "link:../../barry/packages/slack",
+    "@barry/tools": "link:../../barry/packages/tools",
+    "@slack/web-api": "7.8.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.0",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.0"
+  },
+  "scripts": {
+    "test": "vitest run"
+  }
+}
