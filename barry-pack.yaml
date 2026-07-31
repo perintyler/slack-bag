@@ -44,3 +44,20 @@ nouns:
       team/usergroup or all workspace users. Outputs markdown.
     getters: [get_my_messages, get_relevant_messages]
     skills: [team-activity]
+
+# Recurring work. Installed by `./scripts/launchd/setup` in the Barry repo;
+# `barry job list` shows status and `barry job logs` tails output.
+#
+# Disabled by default: it runs a real agent session on a schedule and writes a
+# report. Set `enabled: true` and re-run setup to turn it on.
+jobs:
+  weekly-digest:
+    description: Summarize the last 7 days of team Slack activity
+    command: bash
+    args: ["jobs/weekly-digest"]
+    working-directory: "."
+    enabled: false
+    schedule:
+      hour: 9
+      minute: 0
+      weekday: 1

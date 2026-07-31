@@ -1,0 +1,21 @@
+#!/bin/bash
+# Weekly team-activity digest.
+#
+# Runs the team-activity skill through a headless Barry session. The skill
+# writes its markdown to the working directory, so this points it at a stable
+# output dir rather than wherever launchd happens to start.
+set -euo pipefail
+
+OUT_DIR="${TEAM_DIGEST_DIR:-$HOME/.barry/reports/team-activity}"
+mkdir -p "$OUT_DIR"
+cd "$OUT_DIR"
+
+echo "[$(date -u +%FT%TZ)] weekly-digest: starting"
+
+barry session run \
+  --profile "${TEAM_DIGEST_PROFILE:-default}" \
+  --traits slack \
+  --max-turns 40 \
+  -p "Use the team-activity skill to summarize the last 7 days for the @engineers team, excluding weekends. Write the markdown file into the current directory."
+
+echo "[$(date -u +%FT%TZ)] weekly-digest: done — output in $OUT_DIR"
