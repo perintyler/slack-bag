@@ -1,35 +1,32 @@
 #!/usr/bin/env tsx
 /**
- * Send a Slack message as Tyler's personal user.
+ * Send a Slack message as your own Slack user.
  * Converts markdown input to Slack Block Kit blocks via @barry/md-to-slack-blocks.
  *
  * Usage:
- *   echo "# Hello\n\nThis is **bold**" | node send.mjs --channel D0836U3HA2Z
- *   node send.mjs --channel D0836U3HA2Z --message "# Hello\n\n**world**"
- *   node send.mjs --channel D0836U3HA2Z --file message.md
- *   node send.mjs --channel C0B97T5K91V --thread THREAD_TS --message "threaded reply"
- *   node send.mjs --channel C0B97T5K91V --thread-url https://workspace.slack.com/archives/C0B97T5K91V/p1781113981176759 --message "reply"
+ *   echo "# Hello\n\nThis is **bold**" | node send.mjs --channel C0123ABC456
+ *   node send.mjs --channel C0123ABC456 --message "# Hello\n\n**world**"
+ *   node send.mjs --channel C0123ABC456 --file message.md
+ *   node send.mjs --channel C0123ABC456 --thread THREAD_TS --message "threaded reply"
+ *   node send.mjs --channel C0123ABC456 --thread-url https://workspace.slack.com/archives/C0123ABC456/p1781113981176759 --message "reply"
  */
 
-import { readFileSync, existsSync } from "fs";
-import { homedir } from "os";
-import { join } from "path";
+import { readFileSync } from "fs";
 import { parseArgs } from "util";
 import { markdownToSlackBlocks } from "@barry/md-to-slack-blocks";
 
-// Load token from ~/.env.personal
+// Read the token from the environment. Barry resolves SLACK_USER_TOKEN from
+// the barry's configured source (vault, keychain, or a literal value) and
+// injects it before the skill runs, so nothing here reads a file on disk —
+// that would bypass the credential chain and miss a rotated secret.
 function loadToken() {
-  const envFile = join(homedir(), "repos/barry/.env.personal");
-  if (existsSync(envFile)) {
-    for (const line of readFileSync(envFile, "utf8").split("\n")) {
-      if (line.startsWith("SLACK_USER_TOKEN=")) {
-        return line.split("=", 2)[1].trim().replace(/^['"]|['"]$/g, "");
-      }
-    }
-  }
   const token = process.env.SLACK_USER_TOKEN;
   if (!token) {
-    console.error("ERROR: SLACK_USER_TOKEN not found in ~/repos/barry/.env.personal");
+    console.error(
+      "ERROR: SLACK_USER_TOKEN is not set.\n" +
+        "Configure it with:\n" +
+        "  barry vault set-env <barry> SLACK_USER_TOKEN <token> --source vault",
+    );
     process.exit(1);
   }
   return token;
@@ -80,7 +77,7 @@ async function main() {
   // Resolve thread_ts from --thread or --thread-url
   let threadTs = values.thread;
   if (!threadTs && values["thread-url"]) {
-    // Extract from Slack URL like https://workspace.slack.com/archives/C0B97T5K91V/p1781113981176759
+    // Extract from Slack URL like https://workspace.slack.com/archives/C0123ABC456/p1781113981176759
     const match = values["thread-url"].match(/\/p(\d{10})(\d{6})$/);
     if (match) {
       threadTs = `${match[1]}.${match[2]}`;

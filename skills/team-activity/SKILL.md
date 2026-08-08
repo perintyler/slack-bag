@@ -16,10 +16,16 @@ Generate a per-person summary of Slack activity over a timeframe. Outputs a mark
 
 ## Auth
 
+`SLACK_BOT_TOKEN` is read from the environment — Barry resolves it from the
+barry's configured source (vault, keychain, or a literal value):
+
 ```bash
-source /Users/tyler/repos/barry/.env
-# Use $SLACK_BOT_TOKEN for all API calls (conversations.list, conversations.history, users.list, usergroups)
+barry vault set-env <barry> SLACK_BOT_TOKEN <token> --source vault
 ```
+
+Used for all API calls: `conversations.list`, `conversations.history`,
+`users.list`, `usergroups.*`. Do not read it out of a `.env` file — that
+bypasses the credential chain and will not pick up a rotated secret.
 
 ## Workflow
 

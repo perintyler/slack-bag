@@ -1,39 +1,74 @@
 ---
 name: slack-myself
-description: Send a message to yourself on Slack via the Barry bot DM. Use when you need to DM yourself formatted messages.
+description: Send a message to yourself on Slack via the bot DM. Use when you need to DM yourself formatted messages.
 ---
 
 # Slack Myself
 
-Send a Slack message to yourself (Tyler Perin) via the Barry bot using the Slack API.
+Send a Slack message to yourself via the bot, using the Slack Web API.
 
-## How to use
+## Auth
 
-Use `curl` to call the Slack `chat.postMessage` API with the Barry bot token from `barry/.env`.
+`SLACK_BOT_TOKEN` is read from the environment. Barry resolves it from the
+barry's configured source (vault, keychain, or a literal value) and injects it
+before the skill runs:
 
 ```bash
-source /Users/tyler/repos/barry/.env
+barry vault set-env <barry> SLACK_BOT_TOKEN <token> --source vault
+# or --source keychain
+```
 
+Do not read tokens out of a `.env` file — that bypasses the credential chain
+and will not pick up a rotated secret.
+
+## Resolving your own DM channel
+
+The self-DM channel is discovered at runtime, so nothing is hardcoded. Two
+calls: `auth.test` for your user ID, `conversations.open` to get (or create)
+the DM channel with the bot.
+
+```bash
+USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+  https://slack.com/api/auth.test | jq -r '.user_id')
+
+DM_CHANNEL=$(curl -s -X POST \
+  -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+  -H "Content-Type: application/json; charset=utf-8" \
+  -d "{\"users\":\"$USER_ID\"}" \
+  https://slack.com/api/conversations.open | jq -r '.channel.id')
+```
+
+With a bot token, `auth.test` returns the **bot's** own user ID, so the DM is
+the bot talking to itself. To DM the human who owns the workspace session,
+resolve the ID from `SLACK_USER_TOKEN` instead when one is configured:
+
+```bash
+USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_USER_TOKEN" \
+  https://slack.com/api/auth.test | jq -r '.user_id')
+```
+
+## Sending
+
+```bash
 curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
   -H "Content-Type: application/json; charset=utf-8" \
   -d "{
-    \"channel\": \"D0A9NEJ66C8\",
+    \"channel\": \"$DM_CHANNEL\",
     \"text\": \"$MESSAGE\",
     \"unfurl_links\": false
   }" \
-  "https://slack.com/api/chat.postMessage"
+  https://slack.com/api/chat.postMessage
 ```
 
 ## Details
 
-- **Bot token**: `SLACK_BOT_TOKEN` from `/Users/tyler/repos/barry/.env`
-- **DM channel ID**: `D0A9NEJ66C8` (Barry bot -> Tyler Perin)
-- **User ID**: `U082DC1UR99` (Tyler Perin)
-- Messages appear as coming from the Barry bot
-- Use Slack mrkdwn format: `*bold*`, `<url|text>` for links, `:emoji:` for emoji
+- Messages appear as coming from the bot
+- Use Slack mrkdwn: `*bold*`, `<url|text>` for links, `:emoji:` for emoji
+- `conversations.open` is idempotent — it returns the existing DM if there is one
+- Requires the `im:write` scope to open a DM channel
 
 ## Important
 
-- Use `unfurl_links: false` to prevent link previews from cluttering the message
+- Use `unfurl_links: false` to keep link previews from cluttering the message
 - For multi-line messages, use `\n` in the JSON string
 - Escape special JSON characters in the message body

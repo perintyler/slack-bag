@@ -8,25 +8,31 @@ Searches:
   - Public/private channels by name
   - DMs by user display name, real name, or email
 
-Token: SLACK_USER_TOKEN from ~/repos/barry/.env.personal
+Token: SLACK_USER_TOKEN, read from the environment.
 """
 
 import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 
 def load_token() -> str:
-    env_file = Path.home() / "repos/barry/.env.personal"
-    if env_file.exists():
-        for line in env_file.read_text().splitlines():
-            if line.startswith("SLACK_USER_TOKEN="):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    """Read the token from the environment.
+
+    Barry resolves SLACK_USER_TOKEN from the barry's configured source (vault,
+    keychain, or a literal value) and injects it before the skill runs. Reading
+    a file on disk instead would bypass the credential chain and miss a
+    rotated secret.
+    """
     token = os.environ.get("SLACK_USER_TOKEN", "")
     if not token:
-        print("ERROR: SLACK_USER_TOKEN not found in ~/repos/barry/.env.personal or environment", file=sys.stderr)
+        print(
+            "ERROR: SLACK_USER_TOKEN is not set.\n"
+            "Configure it with:\n"
+            "  barry vault set-env <barry> SLACK_USER_TOKEN <token> --source vault",
+            file=sys.stderr,
+        )
         sys.exit(1)
     return token
 

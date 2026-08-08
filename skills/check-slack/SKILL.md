@@ -1,21 +1,51 @@
 ---
 name: check-slack
-description: Check Slack for unread DMs and mentions, then text me if anything important needs attention. Use when asked to check Slack or as a periodic check.
+description: Check Slack for unread DMs and mentions, then notify through the configured notifier if anything needs attention. Use when asked to check Slack or as a periodic check.
 ---
 
 # Check Slack
 
-Check for unread Slack DMs and @mentions, summarize what needs attention, and text me if there's anything important.
+Check for unread Slack DMs and @mentions, judge what matters, and push a
+summary through whatever notifier the barry has configured.
 
 ## Workflow
 
-1. Use the `slack-unread` skill to fetch recent DMs and @mentions (default: last 24 hours)
-2. Evaluate importance of each message
-3. If there are important items, send a text via `mcp__sms__send_sms` with a concise summary
+1. Use the `slack-unread` skill to fetch recent DMs and @mentions (default:
+   last 24 hours)
+2. Evaluate the importance of each message
+3. If anything is important, call `record_event` with a concise summary
+
+## Notifying
+
+`record_event` (events block) records the summary and resolves the barry's
+notifier. It does not send anything itself — it returns an instruction naming
+the tool to call, and you make that call. That indirection is the point: the
+skill never needs to know whether the user is on SMS, Slack, or email.
+
+```
+record_event(
+  message: "Slack check: @rem asking for help in #proj-agent; @andy DM'd about a PR",
+  phase: "blocked"        # optional
+)
+```
+
+- **Notifier configured** — the result carries `notify: {tool, target}` and an
+  instruction. Call that tool with the summary.
+- **No notifier** — the event is still recorded, and there is no `notify` field.
+  Report the summary in-session instead. Do not fall back to a hardcoded tool.
+- **One-off destination** — pass `notify_tool` (and optionally `target`) to
+  `record_event` to override the default for a single call.
+
+The user sets their notifier once, and any tool can serve:
+
+```bash
+barry notify set <barry> send_slack_message --target '#alerts'
+barry notify set <barry> send_email --target me@example.com
+```
 
 ## Importance rules
 
-**Always important** (text me):
+**Always important** (notify):
 - Direct questions from coworkers (not bots)
 - @mentions asking for help, review, or input
 - Messages with urgency indicators ("urgent", "asap", "blocking", "blocker", "help")
@@ -23,24 +53,25 @@ Check for unread Slack DMs and @mentions, summarize what needs attention, and te
 
 **Not important** (skip):
 - Bot notifications (GitHub, Linear, Geekbot, etc.)
-- FYI-only mentions (no action needed)
-- Messages I've likely already seen (if I replied in the same thread)
-- Messages older than the time window
+- FYI-only mentions where no action is needed
+- Messages already seen — e.g. you replied in the same thread
+- Anything older than the time window
 
-## Text format
+## Summary format
 
-Keep the SMS concise. Example:
+Keep it short; it may go out as an SMS.
 
 ```
 Slack check:
-- @rem in #proj-finops-agent asking for help with a conversation (2:09 PM)
+- @rem in #proj-agent asking for help with a conversation (2:09 PM)
 - @andy DM'd about PR review approach (1:33 PM)
 ```
 
-If nothing important, do NOT send a text. Just report back that everything's clear.
+If nothing is important, do not call `record_event` — just report that
+everything is clear.
 
 ## Notes
 
-- This skill composes `slack-unread` for data and `mcp__sms__send_sms` for notifications
-- Use judgment on importance — err on the side of notifying for genuine human requests
-- Always tell the user what you found, even if nothing was important enough to text about
+- Composes `slack-unread` for data and `record_event` for delivery
+- Use judgment on importance — err toward notifying for genuine human requests
+- Always tell the user what you found, even when nothing warranted a notification

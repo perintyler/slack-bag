@@ -1,4 +1,4 @@
-# Slack (Barry Pack)
+# Slack (Barry Block)
 
 Slack messaging, search, and analytics tools.
 
@@ -17,13 +17,61 @@ Slack messaging, search, and analytics tools.
 
 ## Skills
 
-- `check-slack` — check for unread DMs and mentions, summarize what needs attention
+- `check-slack` — check for unread DMs and mentions, notify through the configured notifier
 - `find-slack-channel-id` — find a Slack channel or DM ID by name
-- `pretty-slack` — send Block Kit formatted Slack messages as your personal user
-- `slack-myself` — send a message to yourself via the Barry bot DM
+- `pretty-slack` — send Block Kit formatted Slack messages as your own Slack user
+- `slack-myself` — send a message to yourself via the bot DM
 - `slack-unread` — check for recent Slack DMs and @mentions
 - `team-activity` — summarize Slack activity per person over a timeframe
 
 ## Jobs
 
 - `weekly-digest` — summarize the last 7 days of team Slack activity (Mondays at 9am)
+
+## Setup
+
+Two tokens, both resolved through Barry's credential chain — vault, keychain,
+or a literal value. Nothing reads a `.env` file, so a rotated secret is picked
+up on the next run.
+
+```bash
+barry vault set-env <barry> SLACK_BOT_TOKEN <token> --source vault
+barry vault set-env <barry> SLACK_USER_TOKEN <token> --source keychain
+```
+
+- **`SLACK_BOT_TOKEN`** (`xoxb-`) — posting as the bot, listing channels,
+  reading history. Scopes: `chat:write`, `channels:read`, `channels:history`,
+  `users:read`, `im:write`.
+- **`SLACK_USER_TOKEN`** (`xoxp-`) — search and posting as yourself. Search is
+  a user-token API; a bot token cannot call it. Scopes: `search:read`,
+  `chat:write`.
+
+Tools that need the user token degrade with a clear error when it is absent,
+so the bot token alone is a usable setup.
+
+Your identity is never configured — `auth.test` resolves your user ID and
+`conversations.open` resolves your self-DM channel at runtime.
+
+### Optional configuration
+
+`BARRY_SLACK_CONFIG` — JSON, for noise filtering. Both keys have defaults, so
+the block works unset.
+
+```json
+{
+  "exclude_channels": ["engineering-github"],
+  "bot_filter": ["github", "slackbot", "linear", "geekbot"]
+}
+```
+
+### Notifications
+
+`check-slack` delivers through `record_event`, which resolves whatever notifier
+the barry has configured rather than hardcoding one:
+
+```bash
+barry notify set <barry> send_slack_message --target '#alerts'
+barry notify set <barry> send_email --target me@example.com
+```
+
+With no notifier configured, findings are reported in-session.
