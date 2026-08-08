@@ -6,6 +6,7 @@ Slack messaging, search, and analytics tools.
 
 - `send_slack_message` — send a message to a Slack channel or thread
 - `send_message_as_user` — send a Slack message as yourself (not as a bot)
+- `send_slack_message_to_self` — DM yourself, markdown rendered as Block Kit
 - `list_slack_channels` — list all Slack channels the bot can access
 - `get_relevant_messages` — search Slack for messages relevant to a query
 - `get_channel_history` — get recent messages from a specific channel
@@ -66,12 +67,21 @@ the block works unset.
 
 ### Notifications
 
-`check-slack` delivers through `record_event`, which resolves whatever notifier
-the barry has configured rather than hardcoding one:
+`check-slack` delivers through `record_event`, which resolves a notifier
+rather than hardcoding one. Resolution order:
+
+1. A `notify_tool` argument on the call
+2. The barry's own `status_notify`
+3. **This block's default — `send_slack_message_to_self`**
+4. Nothing: findings are reported in-session
+
+So with the block enabled and both tokens set, progress updates arrive as a
+Slack DM to yourself with no configuration at all. The default takes no
+target, which is what makes it usable unconfigured.
+
+To send somewhere else, set your own — it always wins over the default:
 
 ```bash
 barry notify set <barry> send_slack_message --target '#alerts'
 barry notify set <barry> send_email --target me@example.com
 ```
-
-With no notifier configured, findings are reported in-session.

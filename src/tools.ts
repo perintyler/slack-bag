@@ -470,3 +470,77 @@ Best for:
     return r.mentions.map((m) => `#${m.channel} @${m.user} (${m.timestamp}): ${m.text}`).join("\n\n");
   },
 });
+
+/**
+ * Resolve the DM channel for the human running this session.
+ *
+ * Prefers the user token: `auth.test` on a bot token returns the *bot's* own
+ * id, so opening a DM with it would have the bot message itself. With a user
+ * token the id is the person, and `conversations.open` returns the existing
+ * bot↔user DM (it is idempotent — it does not create a second one).
+ */
+async function resolveSelfDmChannel(context?: ToolContext): Promise<string> {
+  const botToken = context?.secrets.SLACK_BOT_TOKEN;
+  if (!botToken) throw new Error("SLACK_BOT_TOKEN not configured for this barry");
+
+  const userToken = context?.secrets.SLACK_USER_TOKEN;
+  if (!userToken) {
+    throw new Error(
+      "SLACK_USER_TOKEN not configured for this barry. It identifies which human to DM — " +
+        "a bot token only identifies the bot. Set it with: " +
+        "barry vault set-env <barry> SLACK_USER_TOKEN <token> --source vault",
+    );
+  }
+
+  const { WebClient } = await import("@slack/web-api");
+
+  const identity = await new WebClient(userToken).auth.test();
+  const userId = identity.user_id;
+  if (!userId) throw new Error("Could not resolve your Slack user id from auth.test");
+
+  // Opened with the bot token so the conversation is bot→user, which is what
+  // a notification should look like.
+  const dm = await new WebClient(botToken).conversations.open({ users: userId });
+  const channelId = dm.channel?.id;
+  if (!channelId) throw new Error(`Could not open a DM channel with user ${userId}`);
+
+  return channelId;
+}
+
+export const sendSlackMessageToSelf = defineTool({
+  namespace: "slack",
+  access: "write",
+  name: "send_slack_message_to_self",
+  description: `Send yourself a Slack DM, formatted with Block Kit.
+
+Markdown in the message is converted to Block Kit blocks. Takes no destination — the DM channel is resolved at runtime from your Slack identity, which is what makes this usable as a default notifier for progress updates.
+
+Requires SLACK_BOT_TOKEN (to post) and SLACK_USER_TOKEN (to identify who "self" is).`,
+  secrets: ["SLACK_BOT_TOKEN", "SLACK_USER_TOKEN"],
+  schema: {
+    message: z.string().min(1).describe("Message to send. Markdown is converted to Block Kit."),
+    thread_ts: z.string().optional().describe("Optional thread timestamp to reply in a thread"),
+  },
+  handler: async ({ message, thread_ts }, context) => {
+    const botToken = context?.secrets.SLACK_BOT_TOKEN;
+    if (!botToken) throw new Error("SLACK_BOT_TOKEN not configured for this barry");
+
+    const channel = await resolveSelfDmChannel(context);
+
+    const { markdownToBlocks } = await import("./pretty-slacker/md-to-blocks.js");
+    const blocks = await markdownToBlocks(message);
+
+    const { WebClient } = await import("@slack/web-api");
+    const result = await new WebClient(botToken).chat.postMessage({
+      channel,
+      // `text` is the notification preview and the accessible fallback; Slack
+      // warns when it is missing even though `blocks` carries the content.
+      text: message,
+      blocks,
+      unfurl_links: false,
+      ...(thread_ts ? { thread_ts } : {}),
+    });
+
+    return { sent: true, channel, ts: result.ts };
+  },
+});

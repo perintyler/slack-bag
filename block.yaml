@@ -1,6 +1,12 @@
 name: slack
 description: Slack messaging, search, and analytics tools
 
+# Offered when the barry has not configured its own notifier. Takes no
+# target — the DM channel is resolved from the user's Slack identity — so it
+# works the moment the block's tokens are set.
+default_notifier:
+  tool: send_slack_message_to_self
+
 tools:
   entry: tools.ts
   env:
@@ -29,7 +35,7 @@ nouns:
       Slack messages in channels, threads, and DMs. Searchable by content,
       channel, author, and timeframe with semantic relevance ranking.
     getters: [get_relevant_messages, get_channel_history, get_my_messages, get_barry_mentions]
-    setters: [send_slack_message, send_message_as_user]
+    setters: [send_slack_message, send_message_as_user, send_slack_message_to_self]
     skills: [pretty-slack, slack-myself, slack-unread]
   channels:
     synonyms: [channel, room, workspace]
