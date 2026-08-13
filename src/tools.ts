@@ -2,6 +2,23 @@ import { defineTool } from "@barry/tools";
 import type { ToolContext } from "@barry/tools";
 import { z } from "zod";
 import { getServicePort } from "@barry/env";
+import { findBlockResourceUrl } from "@barry/blocks";
+
+/**
+ * The mentions API is served by the slack-app block's `events` service.
+ * Resolve its URL from the block resource registry — the service declares its
+ * own port, so the central port table is a fallback for machines where
+ * launchd setup has not run yet.
+ */
+function mentionsBaseUrl(): string {
+  try {
+    const url = findBlockResourceUrl("slack-app", "events");
+    if (url) return url.replace(/\/+$/, "");
+  } catch {
+    // Registry unreadable — fall through to the port table.
+  }
+  return `http://127.0.0.1:${getServicePort("slack")}`;
+}
 import { SlackMessagingService, SlackService, RelevanceService } from "@barry/slack";
 import type { ScoredMessage } from "@barry/slack";
 
@@ -433,7 +450,6 @@ Best for:
     search: z.string().optional().describe("Search mention text for this string"),
   },
   handler: async ({ channel, user, limit, since, search }) => {
-    const port = getServicePort("slack");
     const params = new URLSearchParams();
     if (channel) params.set("channel", channel);
     if (user) params.set("user", user);
@@ -441,7 +457,7 @@ Best for:
     if (since) params.set("since", since);
     if (search) params.set("search", search);
 
-    const url = `http://127.0.0.1:${port}/api/mentions?${params}`;
+    const url = `${mentionsBaseUrl()}/api/mentions?${params}`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`slack server returned ${res.status}: ${await res.text()}`);

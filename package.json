@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@barry/blocks": "link:../../barry/packages/blocks",
     "@barry/env": "link:../../barry/packages/env",
     "@barry/slack": "link:../../barry/packages/slack",
     "@barry/tools": "link:../../barry/packages/tools",

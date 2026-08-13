@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@barry/blocks':
+        specifier: link:../../barry/packages/blocks
+        version: link:../../barry/packages/blocks
       '@barry/env':
         specifier: link:../../barry/packages/env
         version: link:../../barry/packages/env
