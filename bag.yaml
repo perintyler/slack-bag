@@ -1,9 +1,12 @@
 name: slack
 description: Slack messaging, search, and analytics tools
 
+bags:
+  - slackbot
+
 # Offered when the barry has not configured its own notifier. Takes no
 # target — the DM channel is resolved from the user's Slack identity — so it
-# works the moment the block's tokens are set.
+# works the moment the bag's tokens are set.
 default_notifier:
   tool: send_slack_message_to_self
 

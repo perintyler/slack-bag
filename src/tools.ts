@@ -2,17 +2,17 @@ import { defineTool } from "@barry/tools";
 import type { ToolContext } from "@barry/tools";
 import { z } from "zod";
 import { getServicePort } from "@barry/env";
-import { findBlockResourceUrl } from "@barry/blocks";
+import { findBagResourceUrl } from "@barry/bags";
 
 /**
- * The mentions API is served by the slack-app block's `events` service.
- * Resolve its URL from the block resource registry — the service declares its
+ * The mentions API is served by the slack-app bag's `events` service.
+ * Resolve its URL from the bag resource registry — the service declares its
  * own port, so the central port table is a fallback for machines where
  * launchd setup has not run yet.
  */
 function mentionsBaseUrl(): string {
   try {
-    const url = findBlockResourceUrl("slack-app", "events");
+    const url = findBagResourceUrl("slack-app", "events");
     if (url) return url.replace(/\/+$/, "");
   } catch {
     // Registry unreadable — fall through to the port table.

@@ -17,7 +17,7 @@ summary through whatever notifier the barry has configured.
 
 ## Notifying
 
-`record_event` (events block) records the summary and resolves the barry's
+`record_event` (events bag) records the summary and resolves the barry's
 notifier. It does not send anything itself — it returns an instruction naming
 the tool to call, and you make that call. That indirection is the point: the
 skill never needs to know whether the user is on SMS, Slack, or email.

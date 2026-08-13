@@ -1,10 +1,10 @@
 {
-  "name": "@barry-blocks/slack",
+  "name": "@barry-bags/slack",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@barry/blocks": "link:../../barry/packages/blocks",
+    "@barry/bags": "link:../../barry/packages/bags",
     "@barry/env": "link:../../barry/packages/env",
     "@barry/slack": "link:../../barry/packages/slack",
     "@barry/tools": "link:../../barry/packages/tools",

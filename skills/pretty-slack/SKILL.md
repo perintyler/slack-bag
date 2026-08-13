@@ -25,7 +25,7 @@ Ask explicitly: "Ready to send?" — do not send until confirmed.
 
 ## Sending a message
 
-Paths below are relative to the block root — run them from there.
+Paths below are relative to the bag root — run them from there.
 
 ```bash
 # From a string

@@ -1,4 +1,4 @@
-# Slack (Barry Block)
+# Slack (Barry Bag)
 
 Slack messaging, search, and analytics tools.
 
@@ -56,7 +56,7 @@ Your identity is never configured — `auth.test` resolves your user ID and
 ### Optional configuration
 
 `BARRY_SLACK_CONFIG` — JSON, for noise filtering. Both keys have defaults, so
-the block works unset.
+the bag works unset.
 
 ```json
 {
@@ -72,10 +72,10 @@ rather than hardcoding one. Resolution order:
 
 1. A `notify_tool` argument on the call
 2. The barry's own `status_notify`
-3. **This block's default — `send_slack_message_to_self`**
+3. **This bag's default — `send_slack_message_to_self`**
 4. Nothing: findings are reported in-session
 
-So with the block enabled and both tokens set, progress updates arrive as a
+So with the bag enabled and both tokens set, progress updates arrive as a
 Slack DM to yourself with no configuration at all. The default takes no
 target, which is what makes it usable unconfigured.
 
