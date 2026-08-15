@@ -1,6 +1,6 @@
 version: 1
 name: pretty-slack
-description: "TODO: describe pretty-slack"
+description: Send Slack Block Kit messages as your own Slack user, converting markdown to blocks automatically. Use for richly formatted DMs and channel posts rather than plain-text sends.
 prompt: |-
   # pretty-slack
 
