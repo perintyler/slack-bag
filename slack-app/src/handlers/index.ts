@@ -365,6 +365,9 @@ const builtinDescriptions: Record<string, string> = {
   status: "Check Barry service health",
 };
 
+/** Descriptions for bag-provided commands, captured at registration. */
+const bagDescriptions: Record<string, string> = {};
+
 let initialized = false;
 
 /**
@@ -377,12 +380,13 @@ export async function initCommandHandlers(): Promise<void> {
 
   try {
     const bagCommands = await loadBagCommands();
-    for (const [name, handler] of Object.entries(bagCommands)) {
+    for (const [name, cmd] of Object.entries(bagCommands)) {
       if (handlers[name]) {
         console.warn(`slack: bag command "${name}" conflicts with built-in — skipping`);
         continue;
       }
-      handlers[name] = handler;
+      handlers[name] = cmd.handler;
+      bagDescriptions[name] = cmd.description;
       console.warn(`slack: registered bag command /${name}`);
     }
   } catch (err) {
@@ -402,7 +406,7 @@ export interface RegisteredCommand {
 export function getRegisteredCommands(): RegisteredCommand[] {
   return Object.keys(handlers).map((name) => ({
     name,
-    description: builtinDescriptions[name] ?? "",
+    description: builtinDescriptions[name] ?? bagDescriptions[name] ?? "",
     builtin: builtinNames.has(name),
   }));
 }

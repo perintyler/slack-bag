@@ -12,9 +12,20 @@ import type { CommandHandler } from "@barry-rocks/slack/commands";
  * import the entry file, and validate that each declared command has a matching
  * named export that is a function.
  */
-export async function loadBagCommands(): Promise<Record<string, CommandHandler>> {
+export interface BagCommand {
+  handler: CommandHandler;
+  /**
+   * The manifest's description. Carried through registration so
+   * `getRegisteredCommands()` reports what the bag actually declared — it used
+   * to report "" for every bag command, which silently diverged from the
+   * manifest generator (which re-reads the manifests itself).
+   */
+  description: string;
+}
+
+export async function loadBagCommands(): Promise<Record<string, BagCommand>> {
   const snapshot = await loadBagRegistrySnapshot();
-  const commands: Record<string, CommandHandler> = {};
+  const commands: Record<string, BagCommand> = {};
 
   for (const bag of snapshot.bags) {
     if (bag.source.type !== "local") continue;
@@ -47,7 +58,7 @@ export async function loadBagCommands(): Promise<Record<string, CommandHandler>>
           console.warn(`slack: bag ${bag.name} command "${cmd.name}" conflicts with another bag — skipping`);
           continue;
         }
-        commands[cmd.name] = handler;
+        commands[cmd.name] = { handler, description: cmd.description };
       }
     } catch (err) {
       console.error(`slack: failed to load bag ${bag.name} slash commands:`, err);
