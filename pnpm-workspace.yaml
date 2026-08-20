@@ -1,3 +1,9 @@
-packages: []
+packages:
+  - slack-app
+
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
+  # better-sqlite3 is a native module: without an approved build step its
+  # binding is never compiled, and every test that opens the mention store
+  # fails at import with "Could not locate the bindings file".
+  better-sqlite3: true
