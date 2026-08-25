@@ -362,17 +362,21 @@ export const sendMessageAsUser = defineTool({
 Uses your user token to send messages, so they appear as coming from you.
 Useful for automated workflows like standup reports where messages need to come from you.
 
+Pass thread_ts to reply in a thread — unlike the bot tools, this reaches DMs the
+bot is not a member of.
+
 Requires SLACK_USER_TOKEN with chat:write scope.`,
   secrets: ["SLACK_BOT_TOKEN", "SLACK_USER_TOKEN"],
   schema: {
     channel: z.string().describe("Channel name, channel ID, or user/bot name to DM (e.g., 'general', 'C1234567890', 'Geekbot')"),
     message: z.string().describe("The message text to send"),
+    thread_ts: z.string().optional().describe("Timestamp of the parent message to reply to. Omit to post a new top-level message. The parent must live in `channel`."),
   },
-  handler: async ({ channel, message }, context) => {
+  handler: async ({ channel, message, thread_ts }, context) => {
     const { slack } = getUserServices(context);
     if (!slack.canSearch) throw new Error("This tool requires SLACK_USER_TOKEN to be configured");
-    const result = await slack.sendMessageAsUser(channel, message);
-    return { success: true, channel: result.channel, timestamp: result.ts, message: "Message sent successfully as user" };
+    const result = await slack.sendMessageAsUser(channel, message, thread_ts);
+    return { success: true, channel: result.channel, timestamp: result.ts, thread_ts, message: "Message sent successfully as user" };
   },
   cliFormat: (result) => {
     const r = result as { channel: string; timestamp: string };
