@@ -1,5 +1,5 @@
-import { defineTool } from "@barry/tools";
-import type { ToolContext } from "@barry/tools";
+import { defineTool } from "@barry-rocks/tools";
+import type { ToolContext } from "@barry-rocks/tools";
 import { z } from "zod";
 import { getServicePort } from "@barry/env";
 import { findBagResourceUrl } from "@barry/bags";

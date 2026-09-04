@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@barry-rocks/tools':
+        specifier: link:../../barry/packages/tools
+        version: link:../../barry/packages/tools
       '@barry/bags':
         specifier: link:../../barry/packages/bags
         version: link:../../barry/packages/bags
@@ -17,9 +20,6 @@ importers:
       '@barry/slack':
         specifier: link:../../barry/packages/slack
         version: link:../../barry/packages/slack
-      '@barry/tools':
-        specifier: link:../../barry/packages/tools
-        version: link:../../barry/packages/tools
       '@slack/web-api':
         specifier: 7.8.0
         version: 7.8.0

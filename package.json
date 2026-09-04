@@ -7,7 +7,7 @@
     "@barry/bags": "link:../../barry/packages/bags",
     "@barry/env": "link:../../barry/packages/env",
     "@barry/slack": "link:../../barry/packages/slack",
-    "@barry/tools": "link:../../barry/packages/tools",
+    "@barry-rocks/tools": "link:../../barry/packages/tools",
     "@slack/web-api": "7.8.0",
     "zod": "3.25.76"
   },
