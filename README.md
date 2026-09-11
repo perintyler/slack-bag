@@ -25,6 +25,24 @@ Slack messaging, search, and analytics tools.
 - `slack-unread` — check for recent Slack DMs and @mentions
 - `team-activity` — summarize Slack activity per person over a timeframe
 
+## Traits
+
+- `slack` — everything the bag provides (the auto-trait), plus the composed
+  `slackbot` tools.
+- `slack-me` — read everything, write only to yourself. The eight read tools
+  plus `send_slack_message_to_self`; the write tools that take a destination
+  are denied by the `slack-self-dm-only` scope, and `slackbot` is deliberately
+  not composed in.
+
+```bash
+barry start --traits slack-me
+```
+
+The scope lives in the Barry repo (`config/scopes.builtin.yaml`) because a bag
+cannot ship one, so `barry db seed` there must run before
+`barry bag sync-traits slack` here — a trait naming a scope that does not exist
+keeps its full grant.
+
 ## Jobs
 
 - `weekly-digest` — summarize the last 7 days of team Slack activity (Mondays at 9am)

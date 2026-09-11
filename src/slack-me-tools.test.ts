@@ -20,10 +20,13 @@ interface ToolDef {
   schema?: Record<string, unknown>;
 }
 
-const slackTools = Object.values(tools).filter(
-  (t): t is ToolDef =>
-    !!t && typeof t === "object" && "namespace" in t && (t as ToolDef).namespace === "slack",
-);
+// Narrowed by hand rather than with a type predicate: the real ToolDefinition
+// is generic over each tool's zod schema, so a predicate onto a common shape is
+// not assignable to it. Reading the four fields off is enough, and keeps this
+// test from having to name a dozen generic instantiations.
+const slackTools: ToolDef[] = Object.values(tools)
+  .map((t) => t as unknown as ToolDef)
+  .filter((t) => t?.namespace === "slack");
 
 /** The single write tool the trait is built to keep. */
 const SELF_DM = "send_slack_message_to_self";
