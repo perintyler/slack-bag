@@ -18,6 +18,29 @@ tools:
     - SLACK_USER_TOKEN
     - ANTHROPIC_API_KEY
 
+# Read everything, write only to yourself.
+#
+# `bags: [slack]` is spelled out on purpose and must NOT be widened to this
+# bag's own name-as-composition. The manifest's `bags:` list composes
+# `slackbot`, whose namespace carries `slack_post_message` (any channel) and
+# `slack_open_conversation` (opens a DM with anyone) — granting the parent
+# auto-trait would hand those over and defeat the point of this trait. Only
+# `generateAutoTraits` expands composition; a hand-written `bags:` is copied
+# verbatim into `namespaces`, which is exactly the narrowness wanted here.
+#
+# `readwrite`, not `read`: `send_slack_message_to_self` is a write tool, and
+# `filterTools` drops write tools under a `read` grant. The narrowing is the
+# scope's job instead — `slack-self-dm-only` denies the three write tools that
+# accept a destination and leaves the self-DM one, which takes no destination
+# at all (the channel comes from `auth.test` at runtime, so the caller cannot
+# redirect it).
+traits:
+  slack-me:
+    description: Read Slack, and DM only yourself
+    access: readwrite
+    bags: [slack]
+    scopes: [slack-self-dm-only]
+
 verbs:
   notify:
     synonyms: [alert, ping, inform, message]
