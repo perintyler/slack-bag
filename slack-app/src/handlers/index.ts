@@ -23,9 +23,7 @@ export const SlackCommandPayloadSchema = z.object({
   team_domain: z.string().default(""),
 });
 
-// ---------------------------------------------------------------------------
 // /barry <prompt> — create a Barry session
-// ---------------------------------------------------------------------------
 
 function handleBarry(payload: SlackCommandPayload): CommandResult {
   const prompt = payload.text.trim();
@@ -62,9 +60,7 @@ function handleBarry(payload: SlackCommandPayload): CommandResult {
   };
 }
 
-// ---------------------------------------------------------------------------
 // /investigate <topic> — deep research session
-// ---------------------------------------------------------------------------
 
 function handleInvestigate(payload: SlackCommandPayload): CommandResult {
   const topic = payload.text.trim();
@@ -101,9 +97,7 @@ function handleInvestigate(payload: SlackCommandPayload): CommandResult {
   };
 }
 
-// ---------------------------------------------------------------------------
 // /loop <task> — loop/recurring session
-// ---------------------------------------------------------------------------
 
 function handleLoop(payload: SlackCommandPayload): CommandResult {
   const task = payload.text.trim();
@@ -140,9 +134,7 @@ function handleLoop(payload: SlackCommandPayload): CommandResult {
   };
 }
 
-// ---------------------------------------------------------------------------
 // /schedule <task> [at time | in duration] — schedule for later
-// ---------------------------------------------------------------------------
 
 function handleSchedule(payload: SlackCommandPayload): CommandResult {
   const text = payload.text.trim();
@@ -222,9 +214,7 @@ function handleSchedule(payload: SlackCommandPayload): CommandResult {
   };
 }
 
-// ---------------------------------------------------------------------------
 // /find <query> — search Slack messages
-// ---------------------------------------------------------------------------
 
 function handleFind(payload: SlackCommandPayload): CommandResult {
   const query = payload.text.trim();
@@ -303,9 +293,7 @@ function handleFind(payload: SlackCommandPayload): CommandResult {
   };
 }
 
-// ---------------------------------------------------------------------------
 // /status — service health check
-// ---------------------------------------------------------------------------
 
 function handleStatus(_payload: SlackCommandPayload): CommandResult {
   return {
@@ -339,10 +327,6 @@ function handleStatus(_payload: SlackCommandPayload): CommandResult {
     },
   };
 }
-
-// ---------------------------------------------------------------------------
-// Registry
-// ---------------------------------------------------------------------------
 
 const builtinNames = new Set(["barry", "loop", "schedule", "investigate", "find", "status"]);
 
