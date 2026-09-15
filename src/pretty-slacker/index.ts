@@ -52,7 +52,6 @@ Supports sending as either the user or the bot identity (configured in config/sl
     const resolvedIdentity = identity ?? defaultIdentity;
     const client = getClient(resolvedIdentity, context);
 
-    // Convert markdown to Slack Block Kit blocks
     const blocks = await markdownToBlocks(markdown);
 
     // Plain-text fallback for notifications and accessibility. Uses the
@@ -60,7 +59,6 @@ Supports sending as either the user or the bot identity (configured in config/sl
     // regex strip that mangles URLs.
     const fallbackText = plainTextFallback(markdown);
 
-    // Resolve channel name to ID
     const channelId = await resolveChannel(client, channel);
 
     const result = await client.chat.postMessage({

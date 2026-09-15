@@ -145,7 +145,6 @@ function toYaml(obj: unknown, indent = 0): string {
 
   if (Array.isArray(obj)) {
     if (obj.length === 0) return `${pad}[]\n`;
-    // Check if array of primitives
     if (obj.every((v) => typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
       return obj.map((v) => `${pad}- ${v}\n`).join("");
     }

@@ -81,7 +81,6 @@ This charge type corresponds to the **costs.charge_type** field in the VQL schem
 
       const blocks = markdownToSlackBlocks(markdown);
 
-      // Should have multiple blocks
       expect(blocks.length).toBeGreaterThan(3);
 
       // Find blocks with bold formatting
@@ -92,7 +91,6 @@ This charge type corresponds to the **costs.charge_type** field in the VQL schem
         !block.text.text.includes("**")
       );
 
-      // Should have at least 3 blocks with properly converted bold formatting
       expect(boldBlocks.length).toBeGreaterThanOrEqual(3);
 
       // Check that no blocks contain unconverted markdown
@@ -132,7 +130,6 @@ curl --request POST \\
 
           // If it contains bold formatting, it should be Slack format
           if (block.text.text.includes("*")) {
-            // Should not contain double asterisks
             expect(block.text.text).not.toMatch(/\*\*/);
           }
         }

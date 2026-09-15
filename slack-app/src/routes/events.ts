@@ -43,7 +43,6 @@ eventsRouter.post("/", verifySlackRequest, (req, res) => {
     return;
   }
 
-  // Event callback — ack immediately, process async
   if (type === "event_callback") {
     // Ack immediately — Slack requires a response within 3 seconds
     res.status(200).json({ ok: true });

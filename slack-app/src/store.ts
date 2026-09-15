@@ -115,12 +115,10 @@ export function listMentions(filter: ListMentionsFilter): Mention[] {
   const params: unknown[] = [];
 
   if (filter.channel) {
-    // Match by channel_id or channel_name
     clauses.push("(channel_id = ? OR channel_name = ?)");
     params.push(filter.channel, filter.channel);
   }
   if (filter.user) {
-    // Match by user_id or user_name
     clauses.push("(user_id = ? OR user_name = ?)");
     params.push(filter.user, filter.user);
   }
