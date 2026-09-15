@@ -1,8 +1,8 @@
-import { defineTool } from "@barry/tools";
-import type { ToolContext } from "@barry/tools";
+import { defineTool } from "@barry-rocks/tools";
+import type { ToolContext } from "@barry-rocks/tools";
 import { WebClient } from "@slack/web-api";
 import { z } from "zod";
-import { markdownToBlocks } from "./md-to-blocks.js";
+import { markdownToBlocks, plainTextFallback } from "./md-to-blocks.js";
 import { loadDefaultIdentity } from "./slack-config.js";
 
 const defaultIdentity = loadDefaultIdentity();
@@ -55,8 +55,10 @@ Supports sending as either the user or the bot identity (configured in config/sl
     // Convert markdown to Slack Block Kit blocks
     const blocks = await markdownToBlocks(markdown);
 
-    // Extract a plain-text fallback from the markdown (first 200 chars)
-    const fallbackText = markdown.replace(/[#*_~`>\[\]()]/g, "").slice(0, 200);
+    // Plain-text fallback for notifications and accessibility. Uses the
+    // converter's renderer so link labels and emoji survive, rather than a
+    // regex strip that mangles URLs.
+    const fallbackText = plainTextFallback(markdown);
 
     // Resolve channel name to ID
     const channelId = await resolveChannel(client, channel);

@@ -1,157 +1,47 @@
 /**
  * Convert markdown to Slack Block Kit blocks.
  *
- * Uses the md-to-slack-blocks npm package if available,
- * otherwise falls back to a built-in converter.
+ * Delegates to the in-bag converter at `../markdown-to-slack-blocks/`, which
+ * emits native Block Kit structure (rich_text lists, preformatted, quotes and
+ * real `table` blocks) rather than flattening everything to mrkdwn text.
+ *
+ * FAILURE MODE IS DELIBERATELY LOUD. This previously dynamic-imported a
+ * converter behind a bare `catch` that silently fell back to a much weaker
+ * built-in. That degradation was invisible: messages kept sending, just with
+ * markedly worse formatting and no error anywhere, so a broken converter could
+ * ship unnoticed. A conversion failure now throws with context attached.
  */
 
 import type { KnownBlock } from "@slack/web-api";
-
-let externalConverter: ((md: string) => unknown[]) | null | undefined = undefined;
-
-async function getExternalConverter(): Promise<((md: string) => unknown[]) | null> {
-  if (externalConverter !== undefined) return externalConverter;
-  try {
-    const mod = await import("../md-to-slack-blocks/src/index.js");
-    externalConverter = mod.markdownToSlackBlocks ?? null;
-  } catch {
-    externalConverter = null;
-  }
-  return externalConverter;
-}
+import {
+  markdownToSlackBlocks,
+  plainTextFallback,
+} from "../markdown-to-slack-blocks/index.js";
+import type { ConvertOptions } from "../markdown-to-slack-blocks/index.js";
 
 /**
  * Convert markdown to Slack Block Kit blocks.
+ *
+ * @throws if conversion fails — callers must NOT paper over this.
  */
-export async function markdownToBlocks(markdown: string): Promise<KnownBlock[]> {
-  const converter = await getExternalConverter();
-  if (converter) {
-    return converter(markdown) as KnownBlock[];
-  }
-  return builtinConvert(markdown);
-}
-
-/**
- * Built-in fallback: converts markdown to Slack section/header/divider blocks
- * using Slack's mrkdwn format.
- */
-function builtinConvert(markdown: string): KnownBlock[] {
-  const blocks: KnownBlock[] = [];
-  const lines = markdown.split("\n");
-  let buffer: string[] = [];
-
-  const flushBuffer = () => {
-    if (buffer.length === 0) return;
-    const text = buffer.join("\n").trim();
-    if (text) {
-      blocks.push({
-        type: "section",
-        text: { type: "mrkdwn", text: convertInlineMarkdown(text) },
-      });
-    }
-    buffer = [];
-  };
-
-  let inCodeBlock = false;
-  const codeLines: string[] = [];
-
-  for (const line of lines) {
-    // Code block fencing
-    if (line.trim().startsWith("```")) {
-      if (inCodeBlock) {
-        // End code block
-        inCodeBlock = false;
-        flushBuffer();
-        blocks.push({
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: "```\n" + codeLines.join("\n") + "\n```",
-          },
-        });
-        codeLines.length = 0;
-        continue;
-      } else {
-        inCodeBlock = true;
-        flushBuffer();
-        continue;
-      }
-    }
-
-    if (inCodeBlock) {
-      codeLines.push(line);
-      continue;
-    }
-
-    // Headings
-    const h1 = line.match(/^# (.+)$/);
-    if (h1) {
-      flushBuffer();
-      blocks.push({
-        type: "header",
-        text: { type: "plain_text", text: h1[1].trim(), emoji: true },
-      });
-      continue;
-    }
-
-    // H2/H3 as bold section
-    const h23 = line.match(/^#{2,3} (.+)$/);
-    if (h23) {
-      flushBuffer();
-      blocks.push({
-        type: "section",
-        text: { type: "mrkdwn", text: `*${h23[1].trim()}*` },
-      });
-      continue;
-    }
-
-    // Horizontal rules
-    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
-      flushBuffer();
-      blocks.push({ type: "divider" });
-      continue;
-    }
-
-    // Empty line — flush
-    if (line.trim() === "") {
-      flushBuffer();
-      continue;
-    }
-
-    // Accumulate text (lists, paragraphs, blockquotes)
-    buffer.push(line);
-  }
-
-  // Handle unclosed code block
-  if (inCodeBlock && codeLines.length > 0) {
-    blocks.push({
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: "```\n" + codeLines.join("\n") + "\n```",
-      },
+export async function markdownToBlocks(
+  markdown: string,
+  options?: ConvertOptions
+): Promise<KnownBlock[]> {
+  try {
+    return markdownToSlackBlocks(markdown, options);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    // Surface loudly: the caller aborts the send rather than quietly
+    // delivering degraded formatting.
+    console.error(
+      `[pretty-slacker] markdown -> Block Kit conversion FAILED: ${detail}`
+    );
+    throw new Error(`Markdown to Block Kit conversion failed: ${detail}`, {
+      cause: error,
     });
   }
-
-  flushBuffer();
-  return blocks;
 }
 
-/**
- * Convert common markdown inline syntax to Slack mrkdwn.
- */
-function convertInlineMarkdown(text: string): string {
-  return (
-    text
-      // Links: [text](url) → <url|text>
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "<$2|$1>")
-      // Bold: **text** → *text*
-      .replace(/\*\*(.+?)\*\*/g, "*$1*")
-      // Strikethrough: ~~text~~ → ~text~
-      .replace(/~~(.+?)~~/g, "~$1~")
-      // Inline code stays as-is (backticks work in both)
-      // Blockquotes: > text → > text (same syntax)
-      // Lists: - item → • item
-      .replace(/^(\s*)[-*] /gm, "$1• ")
-  );
-}
+/** Plain-text fallback for the message `text` field (notifications, a11y). */
+export { plainTextFallback };
