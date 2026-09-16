@@ -462,7 +462,13 @@ Best for:
     if (search) params.set("search", search);
 
     const url = `${mentionsBaseUrl()}/api/mentions?${params}`;
-    const res = await fetch(url);
+    // The route is guarded by the shared BARRY_SECRET: it is reachable from
+    // the internet through the tunnel, not just from loopback.
+    const res = await fetch(url, {
+      headers: process.env.BARRY_SECRET
+        ? { authorization: `Bearer ${process.env.BARRY_SECRET}` }
+        : {},
+    });
     if (!res.ok) {
       throw new Error(`slack server returned ${res.status}: ${await res.text()}`);
     }

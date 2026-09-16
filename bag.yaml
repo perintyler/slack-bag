@@ -17,6 +17,10 @@ tools:
     - SLACK_BOT_TOKEN
     - SLACK_USER_TOKEN
     - ANTHROPIC_API_KEY
+    # get_barry_mentions reads the slack-app service's /api/mentions, which is
+    # guarded by this shared secret — the route is published on the tunnel, so
+    # it cannot be left open to the internet the way a loopback-only one could.
+    - BARRY_SECRET
 
 # Read everything, write only to yourself.
 #
@@ -30,7 +34,7 @@ tools:
 #
 # `readwrite`, not `read`: `send_slack_message_to_self` is a write tool, and
 # `filterTools` drops write tools under a `read` grant. The narrowing is the
-# scope's job instead — `slack-self-dm-only` denies the three write tools that
+# bound's job instead — `slack-self-dm-only` denies the three write tools that
 # accept a destination and leaves the self-DM one, which takes no destination
 # at all (the channel comes from `auth.test` at runtime, so the caller cannot
 # redirect it).
@@ -39,7 +43,7 @@ traits:
     description: Read Slack, and DM only yourself
     access: readwrite
     bags: [slack]
-    scopes: [slack-self-dm-only]
+    bounds: [slack-self-dm-only]
 
 verbs:
   notify:
