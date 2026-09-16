@@ -3,7 +3,7 @@ import type { ToolContext } from "@barry-rocks/tools";
 import { WebClient } from "@slack/web-api";
 import { z } from "zod";
 import { markdownToBlocks, plainTextFallback } from "./md-to-blocks.js";
-import { loadDefaultIdentity } from "./slack-config.js";
+import { DEFAULT_IDENTITY, loadDefaultIdentity } from "./slack-config.js";
 
 const defaultIdentity = loadDefaultIdentity();
 
@@ -22,7 +22,7 @@ export const prettySlacker = defineTool({
 
 Use this instead of send_slack_message when you want rich formatting — headers, bullet lists, code blocks, blockquotes, and links all render natively in Slack rather than as plain mrkdwn text.
 
-Supports sending as either the user or the bot identity (configured in config/slack.yaml).`,
+Supports sending as either the user or the bot identity.`,
   secrets: ["SLACK_BOT_TOKEN", "SLACK_USER_TOKEN"],
   schema: {
     channel: z
@@ -40,7 +40,7 @@ Supports sending as either the user or the bot identity (configured in config/sl
       .enum(["user", "bot"])
       .optional()
       .describe(
-        "Which identity to send as: 'user' (your account) or 'bot' (Barry). Defaults to the value in config/slack.yaml"
+        `Which identity to send as: 'user' (your account) or 'bot' (Barry). Defaults to '${DEFAULT_IDENTITY}'.`
       ),
     thread_ts: z
       .string()
