@@ -1,4 +1,9 @@
 packages:
+  # The Slack API client this bag's tools, slack-app, and the vantage-slack
+  # bag all import. It moved here from the barry monorepo, where every consumer
+  # was a bag (docs/bags.md, "Where a package belongs"). vantage-slack reaches
+  # it from its own repo as link:../slack/packages/slack.
+  - packages/slack
   - slack-app
 
 allowBuilds:

@@ -15,7 +15,7 @@
   "dependencies": {
     "@barry-rocks/env": "link:../../../barry/packages/env",
     "@barry-rocks/bags": "link:../../../barry/packages/bags",
-    "@barry-rocks/slack": "link:../../../barry/packages/slack",
+    "@barry-rocks/slack": "link:../packages/slack",
     "better-sqlite3": "12.10.0",
     "cors": "2.8.5",
     "express": "4.22.1",

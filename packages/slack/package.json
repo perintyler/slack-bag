@@ -1,0 +1,59 @@
+{
+  "name": "@barry-rocks/slack",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./commands": "./src/commands.ts",
+    "./service": "./src/slack-service.ts",
+    "./messaging-service": "./src/slack-messaging-service.ts",
+    "./relevance-service": "./src/relevance-service.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.117.1",
+    "@barry-rocks/agent-runtime": "link:../../../../barry/packages/agent-runtime",
+    "@barry-rocks/env": "link:../../../../barry/packages/env",
+    "@slack/web-api": "7.8.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./commands": {
+        "types": "./dist/commands.d.ts",
+        "default": "./dist/commands.js"
+      },
+      "./service": {
+        "types": "./dist/slack-service.d.ts",
+        "default": "./dist/slack-service.js"
+      },
+      "./messaging-service": {
+        "types": "./dist/slack-messaging-service.d.ts",
+        "default": "./dist/slack-messaging-service.js"
+      },
+      "./relevance-service": {
+        "types": "./dist/relevance-service.d.ts",
+        "default": "./dist/relevance-service.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm build",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "SEE LICENSE IN LICENSE.md",
+  "devDependencies": {
+    "@types/node": "22.15.0",
+    "typescript": "5.9.3"
+  }
+}
