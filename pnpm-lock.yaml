@@ -86,6 +86,9 @@ importers:
         specifier: 3.25.76
         version: 3.25.76
     devDependencies:
+      '@barry-rocks/contracts':
+        specifier: link:../../../barry/packages/contracts
+        version: link:../../../barry/packages/contracts
       '@types/better-sqlite3':
         specifier: 7.6.13
         version: 7.6.13

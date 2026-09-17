@@ -3,6 +3,7 @@ import { z } from "zod";
 import { verifySlackRequest } from "../verify-slack.js";
 import { persistMention } from "../store.js";
 import { resolveNames } from "../resolve.js";
+import { notifyEvent } from "../notify-event.js";
 
 export const eventsRouter = Router();
 
@@ -104,5 +105,14 @@ async function handleEvent(teamId: string, event: SlackEvent): Promise<void> {
     threadTs: event.thread_ts,
     text: event.text,
     rawEvent: event,
+  });
+
+  // Persisting is the record; notifying is best-effort on top of it. A failure
+  // to notify must not lose the mention, so this never throws.
+  await notifyEvent({
+    kind: event.channel_type === "im" ? "im" : "mention",
+    userName,
+    channelName,
+    text: event.text,
   });
 }
